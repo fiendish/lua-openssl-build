@@ -38,7 +38,7 @@ jobs:
 
       - name: Set up environment
         run: |
-          & "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars32.bat"
+          "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars32.bat"
         shell: cmd
 
       - name: Patch Makefile.win and config.win
