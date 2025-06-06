@@ -12,8 +12,6 @@ install:
       pushd C:\
       Start-FileDownload 'https://github.com/fiendish/LuaJIT-build/releases/download/latest/lua51.lib'
       popd
-build:
-- ps: |
       pushd C:\lua-openssl
       git submodule update --init --recursive
       git submodule update --recurse
@@ -26,6 +24,7 @@ build:
       (Get-Content config.win) | ForEach-Object { $_ -replace "LUA_LIB=.+" , "LUA_LIB=C:\lua51.lib" } | Set-Content config.win
 - cmd: nmake -f Makefile.win
 - ps: Get-ChildItem src\openssl.dll -Recurse | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
+build: off
 before_deploy:
 - ps: |
     git config --global credential.helper store
