@@ -1,0 +1,64 @@
+name: Build lua-openssl for Win32 static
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    tags:
+      - '*'
+
+jobs:
+  build:
+    runs-on: windows-2019
+    defaults:
+      run:
+        shell: pwsh
+
+    steps:
+      - name: Checkout lua-openssl
+        uses: actions/checkout@v3
+        with:
+          repository: fiendish/lua-openssl
+          path: lua-openssl
+          submodules: recursive
+
+      - name: Clone LuaJIT
+        run: git clone -b v2.1 --single-branch --depth=1 https://github.com/fiendish/LuaJIT.git C:\luajit
+
+      - name: Download prebuilt lua51.lib
+        run: |
+          Invoke-WebRequest 'https://github.com/fiendish/LuaJIT-build/releases/download/latest/lua51.lib' -OutFile 'C:\lua51.lib'
+
+      - name: Install vcpkg and OpenSSL
+        run: |
+          git clone --depth=1 https://github.com/microsoft/vcpkg.git C:\vcpkg
+          & C:\vcpkg\bootstrap-vcpkg.bat
+          C:\vcpkg\vcpkg install openssl:x86-windows-static
+
+      - name: Set up environment
+        run: |
+          & "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars32.bat"
+        shell: cmd
+
+      - name: Patch Makefile.win and config.win
+        working-directory: lua-openssl
+        run: |
+          $opensslPath = "C:\vcpkg\installed\x86-windows-static"
+          (Get-Content Makefile.win) | ForEach-Object { $_ -replace '"', '' } | Set-Content Makefile.win
+          (Get-Content config.win) | ForEach-Object { $_ -replace '"', '' } | Set-Content config.win
+          (Get-Content config.win) | ForEach-Object { $_ -replace " /MD ", " /MT " } | Set-Content config.win
+          (Get-Content config.win) | ForEach-Object { $_ -replace "LUA_INC=.+" , "LUA_INC=C:\luajit\src" } | Set-Content config.win
+          (Get-Content config.win) | ForEach-Object { $_ -replace "LUA_LIB=.+" , "LUA_LIB=C:\lua51.lib" } | Set-Content config.win
+          (Get-Content config.win) | ForEach-Object { $_ -replace "OPENSSL_INC=.+" , "OPENSSL_INC=$opensslPath\include" } | Set-Content config.win
+          (Get-Content config.win) | ForEach-Object { $_ -replace "OPENSSL_LIB=.+" , "OPENSSL_LIB=$opensslPath\lib\libssl.lib $opensslPath\lib\libcrypto.lib" } | Set-Content config.win
+
+      - name: Build lua-openssl
+        working-directory: lua-openssl
+        run: nmake -f Makefile.win
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lua-openssl-win32
+          path: lua-openssl/src/openssl.dll
