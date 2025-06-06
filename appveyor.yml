@@ -14,7 +14,7 @@ install:
       popd
       pushd C:\lua-openssl
       git submodule update --init --recursive
-      git submodule update --recurse
+      git submodule update --recursive
       (Get-Content Makefile.win) | ForEach-Object { $_ -replace '"' , '' } | Set-Content Makefile.win
       (Get-Content config.win) | ForEach-Object { $_ -replace '"' , '' } | Set-Content config.win
       (Get-Content config.win) | ForEach-Object { $_ -replace " /MD " , " /MT " } | Set-Content config.win
