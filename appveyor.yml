@@ -5,6 +5,9 @@ skip_tags: true
 skip_branch_with_pr: true
 clone_depth: 1
 
+cache:
+- c:\tools\vcpkg\installed\
+
 install:
   - cmd: '"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars32.bat"'
   - cmd: git clone -b v2.1 --single-branch --depth=1 https://github.com/fiendish/LuaJIT.git C:\luajit
@@ -29,8 +32,8 @@ install:
       (Get-Content Makefile.win) | ForEach-Object { $_ -replace '"' , '' } | Set-Content Makefile.win
       (Get-Content config.win) | ForEach-Object { $_ -replace '"' , '' } | Set-Content config.win
       (Get-Content config.win) | ForEach-Object { $_ -replace " /MD " , " /MT " } | Set-Content config.win
-      (Get-Content config.win) | ForEach-Object { $_ -replace '^OPENSSL_INC=.*', 'OPENSSL_INC=C:\vcpkg\installed\x86-windows-static\include' } | Set-Content config.win
-      (Get-Content config.win) | ForEach-Object { $_ -replace '^OPENSSL_LIB=.*', 'OPENSSL_LIB=C:\vcpkg\installed\x86-windows-static\lib\libcrypto.lib C:\vcpkg\installed\x86-windows-static\lib\libssl.lib' } | Set-Content config.win
+      (Get-Content config.win) | ForEach-Object { $_ -replace '^OPENSSL_INC=.*', 'OPENSSL_INC=C:\tools\vcpkg\installed\x86-windows-static\include' } | Set-Content config.win
+      (Get-Content config.win) | ForEach-Object { $_ -replace '^OPENSSL_LIB=.*', 'OPENSSL_LIB=C:\tools\vcpkg\installed\x86-windows-static\lib\libcrypto.lib C:\tools\vcpkg\installed\x86-windows-static\lib\libssl.lib' } | Set-Content config.win
       (Get-Content config.win) | ForEach-Object { $_ -replace "LUA_INC=.+" , "LUA_INC=C:\luajit\src" } | Set-Content config.win
       (Get-Content config.win) | ForEach-Object { $_ -replace "LUA_LIB=.+" , "LUA_LIB=C:\lua51.lib" } | Set-Content config.win
       popd
