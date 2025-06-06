@@ -23,6 +23,11 @@ jobs:
           path: lua-openssl
           submodules: recursive
 
+      - name: Set up MSVC x86 build environment
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x86
+
       - name: Clone LuaJIT
         run: git clone -b v2.1 --single-branch --depth=1 https://github.com/fiendish/LuaJIT.git C:\luajit
 
@@ -35,11 +40,6 @@ jobs:
           git clone --depth=1 https://github.com/microsoft/vcpkg.git C:\vcpkg
           & C:\vcpkg\bootstrap-vcpkg.bat
           C:\vcpkg\vcpkg install openssl:x86-windows-static
-
-      - name: Set up environment
-        run: |
-          "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars32.bat"
-        shell: cmd
 
       - name: Patch Makefile.win and config.win
         working-directory: lua-openssl
