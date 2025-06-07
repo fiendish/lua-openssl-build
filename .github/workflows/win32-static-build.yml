@@ -62,3 +62,14 @@ jobs:
         with:
           name: lua-openssl-win32
           path: lua-openssl/src/openssl.dll
+
+      - name: Create or update "latest" release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: Latest
+          files: lua-openssl/src/openssl.dll
+          prerelease: false
+          draft: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
