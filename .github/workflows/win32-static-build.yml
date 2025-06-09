@@ -17,51 +17,52 @@ jobs:
 
     steps:
       - name: Checkout lua-openssl
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: fiendish/lua-openssl
           path: lua-openssl
           submodules: recursive
+
+      - name: Checkout LuaJIT
+        uses: actions/checkout@v4
+        with:
+          repository: fiendish/LuaJIT
+          ref: v2.1
+          path: lua-openssl/LuaJIT
+          submodules: recursive
+
+      - name: Download prebuilt lua51.lib
+        working-directory: lua-openssl
+        run: |
+          Invoke-WebRequest 'https://github.com/fiendish/LuaJIT-build/releases/download/latest/lua51.lib' -OutFile 'lua51.lib'
 
       - name: Set up MSVC x86 build environment
         uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: x86
 
-      - name: Clone LuaJIT
-        run: git clone -b v2.1 --single-branch --depth=1 https://github.com/fiendish/LuaJIT.git C:\luajit
-
-      - name: Download prebuilt lua51.lib
-        run: |
-          Invoke-WebRequest 'https://github.com/fiendish/LuaJIT-build/releases/download/latest/lua51.lib' -OutFile 'C:\lua51.lib'
-
       - name: Install vcpkg and OpenSSL
+        working-directory: lua-openssl
         run: |
-          git clone --depth=1 https://github.com/microsoft/vcpkg.git C:\vcpkg
-          & C:\vcpkg\bootstrap-vcpkg.bat
-          C:\vcpkg\vcpkg install openssl:x86-windows-static
+          git clone --depth=1 https://github.com/microsoft/vcpkg.git vcpkg
+          & vcpkg\bootstrap-vcpkg.bat
+          vcpkg\vcpkg install openssl:x86-windows-static
 
       - name: Patch Makefile.win and config.win
         working-directory: lua-openssl
         run: |
-          $opensslPath = "C:\vcpkg\installed\x86-windows-static"
+          $opensslPath = "vcpkg\installed\x86-windows-static"
           (Get-Content Makefile.win) | ForEach-Object { $_ -replace '"', '' } | Set-Content Makefile.win
           (Get-Content config.win) | ForEach-Object { $_ -replace '"', '' } | Set-Content config.win
           (Get-Content config.win) | ForEach-Object { $_ -replace " /MD ", " /MT " } | Set-Content config.win
-          (Get-Content config.win) | ForEach-Object { $_ -replace "LUA_INC=.+" , "LUA_INC=C:\luajit\src" } | Set-Content config.win
-          (Get-Content config.win) | ForEach-Object { $_ -replace "LUA_LIB=.+" , "LUA_LIB=C:\lua51.lib" } | Set-Content config.win
+          (Get-Content config.win) | ForEach-Object { $_ -replace "LUA_INC=.+" , "LUA_INC=LuaJIT\src" } | Set-Content config.win
+          (Get-Content config.win) | ForEach-Object { $_ -replace "LUA_LIB=.+" , "LUA_LIB=lua51.lib" } | Set-Content config.win
           (Get-Content config.win) | ForEach-Object { $_ -replace "OPENSSL_INC=.+" , "OPENSSL_INC=$opensslPath\include" } | Set-Content config.win
           (Get-Content config.win) | ForEach-Object { $_ -replace "OPENSSL_LIB=.+" , "OPENSSL_LIB=$opensslPath\lib\libssl.lib $opensslPath\lib\libcrypto.lib" } | Set-Content config.win
 
       - name: Build lua-openssl
         working-directory: lua-openssl
         run: nmake -f Makefile.win
-
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: lua-openssl-win32
-          path: lua-openssl/src/openssl.dll
 
       - name: Create or update "latest" release
         uses: softprops/action-gh-release@v2
