@@ -65,6 +65,7 @@ jobs:
           (Get-Content config.win) | ForEach-Object { $_ -replace "OPENSSL_INC=.+" , "OPENSSL_INC=$opensslPath\include" } | Set-Content config.win
           (Get-Content config.win) | ForEach-Object { $_ -replace "OPENSSL_LIB=.+" , "OPENSSL_LIB=$opensslPath\lib\libssl.lib $opensslPath\lib\libcrypto.lib" } | Set-Content config.win
           Get-Content config.win
+          Get-Content Makefile.win
 
       - name: Build lua-openssl
         working-directory: lua-openssl
