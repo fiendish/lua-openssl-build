@@ -54,11 +54,17 @@ jobs:
           $opensslPath = "vcpkg\installed\x86-windows-static"
           (Get-Content Makefile.win) | ForEach-Object { $_ -replace '"', '' } | Set-Content Makefile.win
           (Get-Content config.win) | ForEach-Object { $_ -replace '"', '' } | Set-Content config.win
-          (Get-Content config.win) | ForEach-Object { $_ -replace " /MD ", " /MT " } | Set-Content config.win
+            (Get-Content config.win) | ForEach-Object { 
+                $_ -replace " /MD ", " /MT " `
+                   -replace " /MD$", " /MT" `
+                   -replace " /MDd ", " /MTd " `
+                   -replace " /MDd$", " /MTd" 
+            } | Set-Content config.win
           (Get-Content config.win) | ForEach-Object { $_ -replace "LUA_INC=.+" , "LUA_INC=LuaJIT\src" } | Set-Content config.win
           (Get-Content config.win) | ForEach-Object { $_ -replace "LUA_LIB=.+" , "LUA_LIB=lua51.lib" } | Set-Content config.win
           (Get-Content config.win) | ForEach-Object { $_ -replace "OPENSSL_INC=.+" , "OPENSSL_INC=$opensslPath\include" } | Set-Content config.win
           (Get-Content config.win) | ForEach-Object { $_ -replace "OPENSSL_LIB=.+" , "OPENSSL_LIB=$opensslPath\lib\libssl.lib $opensslPath\lib\libcrypto.lib" } | Set-Content config.win
+          Get-Content config.win
 
       - name: Build lua-openssl
         working-directory: lua-openssl
