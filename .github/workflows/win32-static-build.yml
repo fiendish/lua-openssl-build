@@ -53,6 +53,8 @@ jobs:
         run: |
           $opensslPath = "vcpkg\installed\x86-windows-static"
           (Get-Content Makefile.win) | ForEach-Object { $_ -replace '"', '' } | Set-Content Makefile.win
+          (Get-Content Makefile.win) | ForEach-Object { $_ -replace 'link', 'link /NODEFAULTLIB:ucrt.lib /NODEFAULTLIB:ucrtd.lib ' } | Set-Content Makefile.win
+          (Get-Content Makefile.win) | ForEach-Object { $_ -replace 'link', 'link /NODEFAULTLIB:msvcrt.lib /NODEFAULTLIB:msvcrtd.lib ' } | Set-Content Makefile.win
           (Get-Content config.win) | ForEach-Object { $_ -replace '"', '' } | Set-Content config.win
             (Get-Content config.win) | ForEach-Object { 
                 $_ -replace " /MD ", " /MT " `
